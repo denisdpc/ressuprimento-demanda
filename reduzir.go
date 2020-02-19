@@ -39,7 +39,7 @@ var reqs map[string][]Requisicao
 // os planilhas são processadas e armazenadas
 // com o mesmo nome acrescido de "_reduzido"
 func gravarPlanilha(arq string) {
-	csvfile, _ := os.Create("planilhas/" + arq + "_reduzido.csv")
+	csvfile, _ := os.Create("atual/" + arq + "_reduzido.csv")
 	w := csv.NewWriter(csvfile)
 	w.Comma = ';'
 
@@ -89,7 +89,7 @@ func extrairDadosLinha(linha string) Requisicao {
 }
 
 func lerPlanilha(arq string) {
-	f, err := os.Open("planilhas/" + arq + ".CSV")
+	f, err := os.Open("atual/" + arq + ".CSV")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -111,9 +111,9 @@ func lerPlanilha(arq string) {
 
 // listar nome de planilhas não processadas
 func getPlanilhasNome() []string {
-	files, err := ioutil.ReadDir("./planilhas")
+	files, err := ioutil.ReadDir("./atual")
 	if err != nil {
-		fmt.Println("as planilhas de requisição devem ser inseridas no subdiretório \"planilhas\"")
+		fmt.Println("as planilhas de requisição devem ser inseridas no subdiretório \"atual\"")
 	}
 
 	var arquivos = make(map[string]string)
