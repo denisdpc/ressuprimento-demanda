@@ -1,0 +1,9 @@
+DESCRITIVO
+A partir do arquivo de um requisição (PLJ0461P) extraído para o período de interesse, são utilizados 2 programas:
+a) "reduzir": para cada DCN são listadas as correspondentes requisições e a soma dos itens requisitados
+b) "comparar": são comparados 2 arquivos "reduzidos" para verificar alterações entre eles
+
+PROCEDIMENTOS
+1) Criar um diretório nomeado "planilhas" e inserir as planilhas de requisição extraídas do SILOMS 11G pela tela PLJ0461P
+2) Rodar o programa "reduzir" para gerar as planilhas "resumidas" de requisição (DCN vs QTD vs requisição)
+3) Rodar o programa "comparar" para comparar alterações entre planilhas "resumidas"
