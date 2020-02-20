@@ -3,7 +3,13 @@ A partir do arquivo de um requisição (PLJ0461P) extraído para o período de i
 a) "reduzir": para cada DCN são listadas as correspondentes requisições e a soma dos itens requisitados
 b) "comparar": são comparados 2 arquivos "reduzidos" para verificar alterações entre eles
 
+A partir do arquivo de um requisição (PLJ0461P) extraído por todo o período disponível para os DCN de interesse, é utilizado o programa:
+a) "referencia": para cada DCN são listadas as requisições atendidas de forma a resgatar o valor unitário de aquisição, seu quantitativo e data de inclusão da requisição
+
 PROCEDIMENTOS
 1) Criar um diretório nomeado "planilhas" e inserir as planilhas de requisição extraídas do SILOMS 11G pela tela PLJ0461P
-2) Rodar o programa "reduzir" para gerar as planilhas "resumidas" de requisição (DCN vs QTD vs requisição)
-3) Rodar o programa "comparar" para comparar alterações entre planilhas "resumidas"
+1.1) Rodar o programa "reduzir" para gerar as planilhas "resumidas" de requisição (DCN vs QTD vs requisição)
+1.2) Rodar o programa "comparar" para comparar alterações entre planilhas "resumidas"
+
+2) Criar um diretório nomeado "historico" e inserir uma planilha de histórico de requisições com os DCN de interesse
+2.1) Rodar o programa "referencia" 
