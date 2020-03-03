@@ -39,14 +39,21 @@ var statusValido = map[string]bool{
 func getPlanilhaNome() string {
 	files, err := ioutil.ReadDir("./historico")
 	if err != nil {
-		fmt.Println("as planilhas de requisição devem ser inseridas no subdiretório \"historico\"")
+		fmt.Println("a planilha de histórico de requisições deve ser inserida no subdiretório \"historico\"")
 	}
 
+	temPlanilhaHistorico := false
 	var arqNome string
 	for _, f := range files {
 		arqNome = f.Name()
+		if strings.HasPrefix(arqNome, "PLJ0461P_") {
+			temPlanilhaHistorico = true
+			break
+		}
 	}
-
+	if !temPlanilhaHistorico {
+		fmt.Println("a planilha de histórico de requisições deve ser inserida no subdiretório \"historico\"")
+	}
 	return arqNome
 }
 
@@ -134,9 +141,9 @@ func calcularCorrecao(dataReq time.Time) float64 {
 }
 
 func gravarPlanilha() {
-	// TODO: gravar arquivo referencia_YYYY_MM (mes passado)
+	mesPassado := time.Now().AddDate(0, -1, 0).Format("2006-01")
+	csvfile, err := os.Create("historico/referencia " + mesPassado + ".csv")
 
-	csvfile, err := os.Create("historico/historico_referencia.csv")
 	if err != nil {
 		fmt.Println("ERRO:", err)
 		return
