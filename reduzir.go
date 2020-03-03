@@ -81,6 +81,11 @@ func extrairDadosLinha(linha string) Requisicao {
 		return req
 	}
 
+	if strings.TrimSpace(col[14]) == "Material Extra-Sistema" {
+		req.numero = ""
+		return req
+	}
+
 	req.partNumber = strings.TrimSpace(col[4])
 	req.unidade = strings.TrimSpace(col[31])
 	req.qtd, _ = strconv.ParseFloat(

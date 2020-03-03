@@ -64,9 +64,27 @@ func comparar(arqAntigo, arqRecente string) {
 	fmt.Println("(antigo: ", contAntigo, ")  (recente: ", contRecente, ")")
 	fmt.Println()
 
+	var chavesDif []string
 	for k, vRecente := range qtdRecente {
 		if qtdAntigo[k] != vRecente {
 			fmt.Println(k, qtdAntigo[k], "==>", vRecente)
+			chavesDif = append(chavesDif, k)
+		}
+	}
+
+	fmt.Println()
+	for k, vAntigo := range qtdAntigo {
+		if qtdRecente[k] != vAntigo {
+			exibirDif := true // se k não está em chavesDif, imprime
+			for _, chave := range chavesDif {
+				if k == chave {
+					exibirDif = false
+					break
+				}
+			}
+			if exibirDif {
+				fmt.Println(k, vAntigo, "==>", qtdRecente[k])
+			}
 		}
 	}
 
