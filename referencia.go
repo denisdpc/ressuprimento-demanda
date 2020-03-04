@@ -30,10 +30,14 @@ var reqs map[string][]Requisicao // DCN --> Requisicao
 var igpm map[string]float64
 
 var statusValido = map[string]bool{
+	"Mapa Aprovado":                       true,
 	"Empenho Aprovado":                    true,
 	"Expedida":                            true,
 	"Recebida Parcialmente no Solicitant": true,
 	"Recebida no Solicitante":             true,
+	"Recebida na Comissão":                true,
+	"Controle de Qualidade":               true,
+	"Volume no Solicitante":               true,
 }
 
 func getPlanilhaNome() string {
@@ -76,6 +80,7 @@ func extrairDadosLinha(linha string) Requisicao {
 
 	req.status = strings.TrimSpace(col[17])
 	if !statusValido[req.status] {
+		fmt.Println("desconsiderado:", req.numero, req.status)
 		req.numero = ""
 		return req
 	}
