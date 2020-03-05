@@ -159,12 +159,13 @@ func gravarPlanilha() {
 	w.Comma = ';'
 
 	for pn, requisicoes := range reqs {
-		w.Write([]string{pn})
+		//w.Write([]string{pn})
 
 		for _, req := range requisicoes {
 			correcao := calcularCorrecao(req.dataInclusao)
 
 			w.Write([]string{
+				pn,
 				req.numero,
 				req.status,
 				req.dataInclusao.Format("2006-01"),
