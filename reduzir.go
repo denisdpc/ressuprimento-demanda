@@ -20,11 +20,10 @@ type Requisicao struct {
 }
 
 var statusConsiderar = map[string]bool{
-	"Validada":                 true,
-	"Aguardando validação":     true,
-	"Análise do Pedido":        true,
-	"Em Cotação":               true,
-	"Suspensa temporariamente": true,
+	"Validada":             true,
+	"Aguardando validação": true,
+	"Análise do Pedido":    true,
+	"Em Cotação":           true,
 }
 
 var statusDesconsiderar = map[string]bool{

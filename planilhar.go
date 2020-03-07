@@ -11,12 +11,14 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/360EntSecGroup-Skylar/excelize"
 	"github.com/dustin/go-humanize"
 )
 
 type Item struct {
-	qtd        int64
-	referencia map[string]Referencia // Nº requisição --> Referencia
+	qtd          int64
+	nomenclatura string
+	referencia   map[string]Referencia // Nº requisição --> Referencia
 }
 
 type Referencia struct {
@@ -207,6 +209,26 @@ as requisições de referencia escolhidas
 */
 func gerarPlanilha(partNumber, requisicaoRef string) {
 	fmt.Println("PLANILHA:", partNumber, requisicaoRef)
+	path := "./estimativa/resultados/"
+
+	f, err := excelize.OpenFile(path + "modelo.xlsx")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	cell, err := f.GetCellValue("DCN0E-10338", "A1")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	f.SetCellValue("DCN0E-10338", "A3", 10)
+
+	if err := f.SaveAs(path + partNumber + ".xlsx"); err != nil {
+		fmt.Println(err)
+	}
+
+	fmt.Println(cell)
+
 }
 
 func main() {
