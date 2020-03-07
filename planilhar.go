@@ -20,11 +20,12 @@ type Item struct {
 }
 
 type Referencia struct {
-	status   string
-	data     string
-	qtd      int64
-	valor    float64
-	correcao float64
+	requisicao string
+	status     string
+	data       string
+	qtd        int64
+	valor      float64
+	correcao   float64
 }
 
 var items map[string]*Item
@@ -95,14 +96,15 @@ func carregarReferencia(arqReferencia string) {
 			auxQtd, _ := strconv.ParseInt(r[4], 10, 64)
 			auxValor, _ := strconv.ParseFloat(strings.Replace(r[5], ",", ".", 1), 64)
 			auxCorrecao, _ := strconv.ParseFloat(strings.Replace(r[6], ",", ".", 1), 64)
-			ref := Referencia{
-				status:   r[2],
-				data:     r[3],
-				qtd:      auxQtd, // TODO: continuar com os demais dados
-				valor:    auxValor,
-				correcao: auxCorrecao,
-			}
 			req := r[1]
+			ref := Referencia{
+				requisicao: r[1],
+				status:     r[2],
+				data:       r[3],
+				qtd:        auxQtd, // TODO: continuar com os demais dados
+				valor:      auxValor,
+				correcao:   auxCorrecao,
+			}
 
 			if item.referencia == nil {
 				item.referencia = make(map[string]Referencia)
@@ -140,7 +142,7 @@ func escolherItems() []string {
 
 	for _, i := range aux {
 		index, _ := strconv.ParseInt(i, 10, 64)
-		fmt.Println(i, indexPN[index])
+		//fmt.Println(i, indexPN[index])
 		pnEscolhidos = append(pnEscolhidos, indexPN[index])
 	}
 
@@ -156,8 +158,7 @@ func (a ByData) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 /*
 disponibiliza uma lista das requisições de referencia
 para escolha através de um fator indexador.
-O retorno corresponde ao número das requisições
-de referência escolhidas
+O retorno corresponde ao número da requisição escolhida
 */
 func escolherReferencia(partNumber string) string {
 	item := items[partNumber]
@@ -175,19 +176,29 @@ func escolherReferencia(partNumber string) string {
 	fmt.Println("------------------------")
 	fmt.Println(partNumber, "(", item.qtd, ")")
 
-	reqIndex := make(map[int]string) // index --> nº requisição
+	reqIndex := make(map[int64]string) // index --> nº requisição
 	for i, ref := range requisicoes {
-		fmt.Println(i, ref.data, lpad(ref.qtd, " ", 6), "  ", humanize.CommafWithDigits(ref.valor*ref.correcao, 2))
-
+		fmt.Println(i, ref.data, ref.requisicao,
+			lpad(strconv.FormatInt(ref.qtd, 10), " ", 6),
+			lpad(humanize.CommafWithDigits(ref.valor*ref.correcao, 2), " ", 12))
+		reqIndex[int64(i)] = ref.requisicao
 	}
 	fmt.Println()
 
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Print("Requisição: ")
-	req, _ := reader.ReadString('\n')
-	//fmt.Println(req)
+	reqEscolhida, _ := reader.ReadString('\n')
 
-	return req
+	aux, _ := strconv.ParseInt(reqEscolhida[0:len(reqEscolhida)-2], 10, 64)
+
+	return reqIndex[aux]
+}
+
+func lpad(s string, pad string, plength int) string {
+	for i := len(s); i < plength; i++ {
+		s = pad + s
+	}
+	return s
 }
 
 /*
@@ -198,15 +209,6 @@ func gerarPlanilha(partNumber, requisicaoRef string) {
 	fmt.Println("PLANILHA:", partNumber, requisicaoRef)
 }
 
-func lpad(valor int64, pad string, plength int) string {
-	s := strconv.FormatInt(valor, 10)
-
-	for i := len(s); i < plength; i++ {
-		s = pad + s
-	}
-	return s
-}
-
 func main() {
 	arqReduzido, arqReferencia := identificarArquivos()
 	fmt.Println(arqReduzido, arqReferencia)
@@ -214,6 +216,7 @@ func main() {
 	carregarItems(arqReduzido)
 	carregarReferencia(arqReferencia)
 
+	fmt.Println("LISTAGEM DE ITENS:")
 	itensEscolhidos := escolherItems()
 
 	for _, partNumber := range itensEscolhidos {
