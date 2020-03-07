@@ -11,5 +11,16 @@ PROCEDIMENTOS
 1.1) Rodar o programa "reduzir" para gerar as planilhas "resumidas" de requisição (DCN vs QTD vs requisição)
 1.2) Rodar o programa "comparar" para comparar alterações entre planilhas "resumidas"
 
-2) Criar um diretório nomeado "historico" e inserir uma planilha de histórico de requisições com os DCN de interesse
-2.1) Rodar o programa "referencia" 
+2) Criar um diretório nomeado "histórico" e inserir
+2.1) planilha IGPM.csv com o histórico do índice IGPM 
+2.1.1) o valor do índice de cada mês é obtido pela calculadora do cidadao (pesquisar internet)
+2.1.2) para cada mês (data inicial e final igual) é obtido o valor do índice e registrado na planilha
+
+2.2) inserir uma planilha de histórico de requisições com status a partir de mapa (qdo o valor utilizado é o efetivamente cotado)
+
+2.3) rodar o programa "referencia" para obter o IGPM acumulado de cada DCN adquirido
+
+3) Criar um diretório nomeado "estimativa" e inserir:
+3.1) planilha de "referencia" obtida anteriormente do diretório "historico"
+3.2) última planilha com final "_reduzida" obtida anteriormente do diretório "planilhas"
+3.3) rodar o programa "estimar"

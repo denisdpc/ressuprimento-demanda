@@ -19,13 +19,13 @@ func comparar(arqAntigo, arqRecente string) {
 		return
 	}
 
-	csvRecente, err := os.Open("atual/" + arqRecente)
+	csvRecente, err := os.Open("planilhas/" + arqRecente)
 	if err != nil {
 		log.Fatal("não é possível abrir o arquivo", err)
 	}
 	defer csvRecente.Close()
 
-	csvAntigo, err := os.Open("atual/" + arqAntigo)
+	csvAntigo, err := os.Open("planilhas/" + arqAntigo)
 	if err != nil {
 		log.Fatal("não é possível abrir o arquivo", err)
 	}
@@ -100,9 +100,9 @@ func printDataArquivos(arqAntigoNome, arqRecenteNome string) {
 
 func main() {
 
-	files, err := ioutil.ReadDir("./atual")
+	files, err := ioutil.ReadDir("./planilhas")
 	if err != nil {
-		fmt.Println("as planilhas de requisição devem ser inseridas no subdiretório \"atual\"")
+		fmt.Println("as planilhas de requisição devem ser inseridas no subdiretório \"planilhas\"")
 		return
 	}
 

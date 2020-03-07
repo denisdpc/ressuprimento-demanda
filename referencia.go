@@ -27,7 +27,6 @@ type Requisicao struct {
 }
 
 var reqs map[string][]Requisicao // DCN --> Requisicao
-var igpm map[string]float64
 
 var statusValido = map[string]bool{
 	"Mapa Aprovado":                       true,
@@ -62,7 +61,6 @@ func getPlanilhaNome() string {
 }
 
 func extrairDadosLinha(linha string) Requisicao {
-	//fmt.Println(linha)
 	col := strings.Split(linha, ";")
 	req := Requisicao{}
 
@@ -112,7 +110,6 @@ func lerPlanilha(arq string) {
 	scanner := bufio.NewScanner(dec)
 	for scanner.Scan() {
 		linha := scanner.Text()
-		//fmt.Println(linha)
 		var req Requisicao = extrairDadosLinha(linha)
 		if len(req.numero) != 11 {
 			continue
@@ -121,31 +118,7 @@ func lerPlanilha(arq string) {
 	}
 }
 
-func calcularCorrecao(dataReq time.Time) float64 {
-	hoje := time.Now()
-	acumulado := 1.0
-
-	for {
-		if dataReq.Year() >= hoje.Year() {
-			if dataReq.Month() > hoje.Month()-1 {
-				break
-			}
-		}
-		dataReqString := dataReq.Format("2006-01")
-
-		indice := igpm[dataReqString]
-		if indice == 0 {
-			fmt.Println("incluir índice IGPM em ", dataReqString)
-		}
-
-		acumulado = acumulado * indice
-		dataReq = dataReq.AddDate(0, 1, 0)
-	}
-
-	return acumulado
-}
-
-func gravarPlanilha() {
+func gravarPlanilha(tabelaCorrecao map[string]float64) {
 	mesPassado := time.Now().AddDate(0, -1, 0).Format("2006-01")
 	csvfile, err := os.Create("historico/referencia " + mesPassado + ".csv")
 
@@ -158,17 +131,18 @@ func gravarPlanilha() {
 	w := csv.NewWriter(csvfile)
 	w.Comma = ';'
 
-	for pn, requisicoes := range reqs {
-		//w.Write([]string{pn})
+	w.Write([]string{"Part Number", "Req numero", "Req status", "Req data", "qtd", "Valor unitario", "IGPM acumulado"})
 
+	for pn, requisicoes := range reqs {
 		for _, req := range requisicoes {
-			correcao := calcularCorrecao(req.dataInclusao)
+			dt := req.dataInclusao.Format("2006-01")
+			correcao := tabelaCorrecao[dt]
 
 			w.Write([]string{
 				pn,
 				req.numero,
 				req.status,
-				req.dataInclusao.Format("2006-01"),
+				dt,
 				strconv.FormatFloat(req.qtd, 'f', 0, 64),
 				strings.Replace(strconv.FormatFloat(req.valor, 'f', 2, 64), ".", ",", 1),
 				strings.Replace(strconv.FormatFloat(correcao, 'f', 8, 64), ".", ",", 1)})
@@ -177,7 +151,29 @@ func gravarPlanilha() {
 	w.Flush()
 }
 
-func lerIGPM() bool { // retorna false se faltar IGPM do mês passado
+func calcularTabelaCorrecao(igpm map[string]float64) map[string]float64 { // DATA --> ACUMULADO
+	tabelaCorrecao := make(map[string]float64)
+	dataInicial := time.Date(1990, 01, 01, 00, 00, 00, 00, time.UTC) // 1º data de IGPM
+	dataRef := time.Now().AddDate(0, -1, 0)                          // mês passado
+
+	dt := dataRef.Format("2006-01")
+	tabelaCorrecao[dt] = igpm[dt]
+	valorAnterior := tabelaCorrecao[dt]
+
+	for {
+		dataRef = dataRef.AddDate(0, -1, 0)
+		if dataRef.Before(dataInicial) {
+			break
+		}
+		dt = dataRef.Format("2006-01")
+
+		tabelaCorrecao[dt] = valorAnterior * igpm[dt]
+		valorAnterior = tabelaCorrecao[dt]
+	}
+	return tabelaCorrecao
+}
+
+func lerIGPM() map[string]float64 {
 	csvfile, err := os.Open("historico/IGPM.csv")
 	if err != nil {
 		log.Fatalln("não é possível abrir o arquivo IGMP.csv", err)
@@ -186,7 +182,7 @@ func lerIGPM() bool { // retorna false se faltar IGPM do mês passado
 	r := csv.NewReader(csvfile)
 	r.Comma = ';'
 
-	igpm = make(map[string]float64)
+	igpm := make(map[string]float64)
 
 	for {
 		record, err := r.Read()
@@ -205,15 +201,17 @@ func lerIGPM() bool { // retorna false se faltar IGPM do mês passado
 	_, igpmRegistrado := igpm[mesPassado]
 	if !igpmRegistrado {
 		fmt.Println("incluir IGPM de", mesPassado)
-		return false
+		return nil
 	}
-	return true
+	return igpm
 }
 
 func main() {
-	if lerIGPM() {
+	igpm := lerIGPM()
+	if igpm != nil {
+		tabelaCorrecao := calcularTabelaCorrecao(igpm)
 		planilha := getPlanilhaNome()
 		lerPlanilha(planilha)
-		gravarPlanilha()
+		gravarPlanilha(tabelaCorrecao)
 	}
 }
