@@ -31,7 +31,7 @@ type Referencia struct {
 	correcao   float64
 }
 
-var items map[string]*Item
+var items map[string]*Item // partNumber (DCN) --> Item
 
 func identificarArquivoReduzido() string { // nome do arquivo reduzido mais recente do diretório planilhas
 	files, err := ioutil.ReadDir("./planilhas")
@@ -246,7 +246,18 @@ func gerarPlanilha(partNumber, requisicaoRef string) {
 		fmt.Println(err)
 		return
 	}
-	f.SetCellValue("planilha", "A3", 10)
+
+	item := items[partNumber]
+	requisicao := item.referencia[requisicaoRef]
+
+	f.SetCellValue("planilha", "E6", partNumber)
+	f.SetCellValue("planilha", "E7", item.nomenclatura)
+	f.SetCellValue("planilha", "A11", requisicao.data)
+	f.SetCellValue("planilha", "B11", requisicaoRef)
+	f.SetCellValue("planilha", "E11", requisicao.qtd)
+	f.SetCellValue("planilha", "F11", requisicao.unidade)
+	f.SetCellValue("planilha", "G11", requisicao.valor)
+	f.SetCellValue("planilha", "J16", requisicao.correcao)
 
 	if err := f.SaveAs(path + partNumber + ".xlsx"); err != nil {
 		fmt.Println(err)
