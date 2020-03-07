@@ -15,8 +15,8 @@ import (
 )
 
 type Requisicao struct {
-	numero, status, partNumber, unidade string
-	qtd                                 float64
+	numero, status, partNumber, nomenclatura, unidade string
+	qtd                                               float64
 }
 
 var statusConsiderar = map[string]bool{
@@ -33,7 +33,7 @@ var statusDesconsiderar = map[string]bool{
 	"Recebida na Comissão":    true,
 }
 
-var reqs map[string][]Requisicao
+var reqs map[string][]Requisicao // partNumber --> Requisicao
 
 // os planilhas são processadas e armazenadas
 // com o mesmo nome acrescido de "_reduzido"
@@ -46,14 +46,15 @@ func gravarPlanilha(arq string) {
 		var record []string
 		var soma float64
 		record = append(record, pn)
-		record = append(record, "0")
+		record = append(record, requisicoes[0].nomenclatura)
+		record = append(record, "0") // será atualizado com o valor de soma
 
 		for _, req := range requisicoes {
 			record = append(record, req.numero)
 			soma += req.qtd
 		}
 
-		record[1] = strconv.FormatFloat(soma, 'f', 0, 64)
+		record[2] = strconv.FormatFloat(soma, 'f', 0, 64)
 		w.Write(record)
 	}
 	w.Flush()
@@ -74,7 +75,7 @@ func extrairDadosLinha(linha string) Requisicao {
 	req.status = strings.TrimSpace(col[17])
 	if !statusConsiderar[req.status] {
 		if !statusDesconsiderar[req.status] {
-			fmt.Println("desconsiderado:", req.numero, req.status)
+			fmt.Println("requisição não processada:", req.numero, req.status)
 		}
 		req.numero = ""
 		return req
@@ -86,6 +87,7 @@ func extrairDadosLinha(linha string) Requisicao {
 	}
 
 	req.partNumber = strings.TrimSpace(col[4])
+	req.nomenclatura = strings.TrimSpace(col[7])
 	req.unidade = strings.TrimSpace(col[31])
 	req.qtd, _ = strconv.ParseFloat(
 		strings.ReplaceAll(strings.TrimSpace(col[30]), "\"", ""), 64)

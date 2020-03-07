@@ -41,7 +41,7 @@ func comparar(arqAntigo, arqRecente string) {
 		if err == io.EOF {
 			break
 		}
-		qtd, _ := strconv.ParseInt(strings.TrimSpace(record[1]), 10, 64)
+		qtd, _ := strconv.ParseInt(strings.TrimSpace(record[2]), 10, 64)
 		qtdRecente[record[0]] = qtd
 		contRecente++
 	}
@@ -56,7 +56,7 @@ func comparar(arqAntigo, arqRecente string) {
 		if err == io.EOF {
 			break
 		}
-		qtd, _ := strconv.ParseInt(strings.TrimSpace(record[1]), 10, 64)
+		qtd, _ := strconv.ParseInt(strings.TrimSpace(record[2]), 10, 64)
 		qtdAntigo[record[0]] = qtd
 		contAntigo++
 	}

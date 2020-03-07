@@ -131,7 +131,7 @@ func gravarPlanilha(tabelaCorrecao map[string]float64) {
 	w := csv.NewWriter(csvfile)
 	w.Comma = ';'
 
-	w.Write([]string{"Part Number", "Req numero", "Req status", "Req data", "qtd", "Valor unitario", "IGPM acumulado"})
+	w.Write([]string{"Part Number", "Req numero", "Req status", "Req data", "qtd", "Unidade","Valor unitario", "IGPM acumulado"})
 
 	for pn, requisicoes := range reqs {
 		for _, req := range requisicoes {
@@ -144,6 +144,7 @@ func gravarPlanilha(tabelaCorrecao map[string]float64) {
 				req.status,
 				dt,
 				strconv.FormatFloat(req.qtd, 'f', 0, 64),
+				req.unidade,
 				strings.Replace(strconv.FormatFloat(req.valor, 'f', 2, 64), ".", ",", 1),
 				strings.Replace(strconv.FormatFloat(correcao, 'f', 8, 64), ".", ",", 1)})
 		}

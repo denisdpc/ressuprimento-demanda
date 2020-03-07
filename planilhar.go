@@ -26,29 +26,53 @@ type Referencia struct {
 	status     string
 	data       string
 	qtd        int64
+	unidade    string
 	valor      float64
 	correcao   float64
 }
 
 var items map[string]*Item
 
-func identificarArquivos() (string, string) {
-	files, err := ioutil.ReadDir("./estimativa")
+func identificarArquivoReduzido() string { // nome do arquivo reduzido mais recente do diretório planilhas
+	files, err := ioutil.ReadDir("./planilhas")
 	if err != nil {
-		fmt.Println("as planilhas de requisição devem ser inseridas no subdiretório \"planilhas\"")
+		fmt.Println("não foi localizada a planilha reduzida no diretório \"planilhas\"")
 	}
 
-	arqReduzido, arqReferencia := "", ""
+	dtMax := ""
 	for _, f := range files {
+		dt := ""
 		arqNome := f.Name()
 		if strings.HasSuffix(arqNome, "_reduzido.csv") {
-			arqReduzido = "./estimativa/" + arqNome
-		}
-		if strings.HasPrefix(arqNome, "referencia") {
-			arqReferencia = "./estimativa/" + arqNome
+			dt = arqNome[9:21]
+			if dt > dtMax {
+				dtMax = dt
+			}
 		}
 	}
-	return arqReduzido, arqReferencia
+
+	return "./planilhas/" + "PLJ0461P_" + dtMax + "_reduzido.csv"
+}
+
+func identificarArquivoReferencia() string { // nome do arquivo de referência mais recente do diretório histórico
+	files, err := ioutil.ReadDir("./historico")
+	if err != nil {
+		fmt.Println("não foi localizada a planilha referencia no diretório \"historico\"")
+	}
+
+	dtMax := ""
+	for _, f := range files {
+		dt := ""
+		arqNome := f.Name()
+		if strings.HasPrefix(arqNome, "referencia") {
+			dt = arqNome[10:18]
+			if dt > dtMax {
+				dtMax = dt
+			}
+		}
+	}
+
+	return "./historico/" + "referencia" + dtMax + ".csv"
 }
 
 // carrega o mapa items com os dados do arquivo reduzido
@@ -69,9 +93,10 @@ func carregarItems(arqReduzido string) {
 		if err == io.EOF {
 			break
 		}
-		aux, _ := strconv.ParseInt(r[1], 10, 64)
+		aux, _ := strconv.ParseInt(r[2], 10, 64)
 		items[r[0]] = &Item{
-			qtd: aux,
+			nomenclatura: r[1],
+			qtd:          aux,
 		}
 	}
 }
@@ -96,14 +121,15 @@ func carregarReferencia(arqReferencia string) {
 
 		if item, temItem := items[partNumber]; temItem {
 			auxQtd, _ := strconv.ParseInt(r[4], 10, 64)
-			auxValor, _ := strconv.ParseFloat(strings.Replace(r[5], ",", ".", 1), 64)
-			auxCorrecao, _ := strconv.ParseFloat(strings.Replace(r[6], ",", ".", 1), 64)
+			auxValor, _ := strconv.ParseFloat(strings.Replace(r[6], ",", ".", 1), 64)
+			auxCorrecao, _ := strconv.ParseFloat(strings.Replace(r[7], ",", ".", 1), 64)
 			req := r[1]
 			ref := Referencia{
 				requisicao: r[1],
 				status:     r[2],
 				data:       r[3],
-				qtd:        auxQtd, // TODO: continuar com os demais dados
+				qtd:        auxQtd,
+				unidade:    r[5],
 				valor:      auxValor,
 				correcao:   auxCorrecao,
 			}
@@ -144,7 +170,6 @@ func escolherItems() []string {
 
 	for _, i := range aux {
 		index, _ := strconv.ParseInt(i, 10, 64)
-		//fmt.Println(i, indexPN[index])
 		pnEscolhidos = append(pnEscolhidos, indexPN[index])
 	}
 
@@ -176,12 +201,12 @@ func escolherReferencia(partNumber string) string {
 	sort.Sort(ByData(requisicoes))
 
 	fmt.Println("------------------------")
-	fmt.Println(partNumber, "(", item.qtd, ")")
+	fmt.Println(partNumber, "(", item.qtd, ") : "+item.nomenclatura)
 
 	reqIndex := make(map[int64]string) // index --> nº requisição
 	for i, ref := range requisicoes {
 		fmt.Println(i, ref.data, ref.requisicao,
-			lpad(strconv.FormatInt(ref.qtd, 10), " ", 6),
+			lpad(strconv.FormatInt(ref.qtd, 10), " ", 6), ref.unidade,
 			lpad(humanize.CommafWithDigits(ref.valor*ref.correcao, 2), " ", 12))
 		reqIndex[int64(i)] = ref.requisicao
 	}
@@ -209,19 +234,19 @@ as requisições de referencia escolhidas
 */
 func gerarPlanilha(partNumber, requisicaoRef string) {
 	fmt.Println("PLANILHA:", partNumber, requisicaoRef)
-	path := "./estimativa/resultados/"
+	path := "./estimativa/"
 
 	f, err := excelize.OpenFile(path + "modelo.xlsx")
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	cell, err := f.GetCellValue("DCN0E-10338", "A1")
+	cell, err := f.GetCellValue("planilha", "A1")
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	f.SetCellValue("DCN0E-10338", "A3", 10)
+	f.SetCellValue("planilha", "A3", 10)
 
 	if err := f.SaveAs(path + partNumber + ".xlsx"); err != nil {
 		fmt.Println(err)
@@ -232,15 +257,18 @@ func gerarPlanilha(partNumber, requisicaoRef string) {
 }
 
 func main() {
-	arqReduzido, arqReferencia := identificarArquivos()
-	fmt.Println(arqReduzido, arqReferencia)
+
+	arqReduzido := identificarArquivoReduzido()
+	fmt.Println(arqReduzido)
+
+	arqReferencia := identificarArquivoReferencia()
+	fmt.Println(arqReferencia)
 
 	carregarItems(arqReduzido)
 	carregarReferencia(arqReferencia)
 
 	fmt.Println("LISTAGEM DE ITENS:")
 	itensEscolhidos := escolherItems()
-
 	for _, partNumber := range itensEscolhidos {
 		requisicaoRef := escolherReferencia(partNumber)
 		gerarPlanilha(partNumber, requisicaoRef)

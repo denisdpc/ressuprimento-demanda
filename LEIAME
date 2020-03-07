@@ -23,4 +23,4 @@ PROCEDIMENTOS
 3) Criar um diretório nomeado "estimativa" e inserir:
 3.1) planilha de "referencia" obtida anteriormente do diretório "historico"
 3.2) última planilha com final "_reduzida" obtida anteriormente do diretório "planilhas"
-3.3) rodar o programa "estimar"
+3.3) rodar o programa "planilhar"
