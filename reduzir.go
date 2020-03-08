@@ -44,17 +44,19 @@ func gravarPlanilha(arq string) {
 
 	for pn, requisicoes := range reqs {
 		var record []string
-		var soma float64
+		//var soma float64
 		record = append(record, pn)
 		record = append(record, requisicoes[0].nomenclatura)
-		record = append(record, "0") // será atualizado com o valor de soma
+		//record = append(record, "0") // será atualizado com o valor de soma
 
 		for _, req := range requisicoes {
 			record = append(record, req.numero)
-			soma += req.qtd
+			record = append(record, strconv.FormatFloat(req.qtd, 'f', 0, 64))
+			record = append(record, req.unidade)
+			//soma += req.qtd
 		}
 
-		record[2] = strconv.FormatFloat(soma, 'f', 0, 64)
+		//record[2] = strconv.FormatFloat(soma, 'f', 0, 64)
 		w.Write(record)
 	}
 	w.Flush()

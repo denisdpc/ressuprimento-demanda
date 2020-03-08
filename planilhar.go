@@ -16,12 +16,17 @@ import (
 )
 
 type Item struct {
-	qtd          int64
+	//qtd          int64
 	nomenclatura string
+	requisicoes  []Requisicao
 	referencia   map[string]Referencia // Nº requisição --> Referencia
 }
 
-type Referencia struct {
+type Requisicao struct {
+	numero, qtd, unidade string
+}
+
+type Referencia struct { // requisições antigas para servir de referência
 	requisicao string
 	status     string
 	data       string
@@ -76,7 +81,7 @@ func identificarArquivoReferencia() string { // nome do arquivo de referência m
 }
 
 // carrega o mapa items com os dados do arquivo reduzido
-func carregarItems(arqReduzido string) {
+func carregarReduzido(arqReduzido string) {
 	csvArq, err := os.Open(arqReduzido)
 	if err != nil {
 		fmt.Println("não é possível abrir o arquivo", err)
@@ -93,10 +98,22 @@ func carregarItems(arqReduzido string) {
 		if err == io.EOF {
 			break
 		}
-		aux, _ := strconv.ParseInt(r[2], 10, 64)
+
+		aux := (len(r) - 2) / 3
+		reqArray := make([]Requisicao, 0, aux)
+		for i := 0; i < aux; i++ {
+			reqArray = append(reqArray, Requisicao{
+				numero:  r[2+3*i],
+				qtd:     r[2+3*i+1],
+				unidade: r[2+3*i+2],
+			})
+		}
+
+		//aux, _ := strconv.ParseInt(r[2], 10, 64)
 		items[r[0]] = &Item{
 			nomenclatura: r[1],
-			qtd:          aux,
+			requisicoes:  reqArray,
+			//qtd:          aux,
 		}
 	}
 }
@@ -201,7 +218,12 @@ func escolherReferencia(partNumber string) string {
 	sort.Sort(ByData(requisicoes))
 
 	fmt.Println("------------------------")
-	fmt.Println(partNumber, "(", item.qtd, ") : "+item.nomenclatura)
+	fmt.Println(partNumber, item.nomenclatura)
+	for _, reqArray := range item.requisicoes {
+		fmt.Print(reqArray.numero, ": ", reqArray.qtd, " ", reqArray.unidade, "     ")
+	}
+	fmt.Println()
+	fmt.Println()
 
 	reqIndex := make(map[int64]string) // index --> nº requisição
 	for i, ref := range requisicoes {
@@ -248,16 +270,42 @@ func gerarPlanilha(partNumber, requisicaoRef string) {
 	}
 
 	item := items[partNumber]
-	requisicao := item.referencia[requisicaoRef]
+	referencia := item.referencia[requisicaoRef]
+	requisicoes := item.requisicoes
 
 	f.SetCellValue("planilha", "E6", partNumber)
 	f.SetCellValue("planilha", "E7", item.nomenclatura)
-	f.SetCellValue("planilha", "A11", requisicao.data)
+	f.SetCellValue("planilha", "A11", referencia.data)
 	f.SetCellValue("planilha", "B11", requisicaoRef)
-	f.SetCellValue("planilha", "E11", requisicao.qtd)
-	f.SetCellValue("planilha", "F11", requisicao.unidade)
-	f.SetCellValue("planilha", "G11", requisicao.valor)
-	f.SetCellValue("planilha", "J16", requisicao.correcao)
+	f.SetCellValue("planilha", "G11", referencia.qtd)
+	f.SetCellValue("planilha", "H11", referencia.unidade)
+	f.SetCellValue("planilha", "I11", referencia.valor)
+	f.SetCellValue("planilha", "J19", referencia.correcao)
+
+	cont := 16
+	soma := 0
+
+	for _, req := range requisicoes {
+		linha := strconv.Itoa(cont)
+		qtd, _ := strconv.Atoi(req.qtd)
+		soma += qtd
+		f.SetCellValue("planilha", "A"+linha, req.numero)
+		f.SetCellValue("planilha", "E"+linha, qtd)
+		f.SetCellValue("planilha", "F"+linha, req.unidade)
+		cont++
+	}
+	f.SetCellValue("planilha", "E19", soma)
+	if len(requisicoes) > 0 {
+		f.SetCellValue("planilha", "F19", requisicoes[0].unidade)
+	}
+
+	f.SetCellFormula("planilha", "E19", "SUM(E16:E18)")
+	f.SetCellFormula("planilha", "G23", "E19/G11")
+	f.SetCellFormula("planilha", "G24", "IF(G23>=1,0.1,IF(G23>0.67,0.4,IF(G23>0.33,0.6,0.8)))")
+	f.SetCellFormula("planilha", "A27", "G24*I11*J19*J16*G11")
+	f.SetCellFormula("planilha", "C27", "IF(G11=0,0,(1-G24)*I11*E19*J16*J19)")
+	f.SetCellFormula("planilha", "E27", "(A27+C27)/E19")
+	f.SetCellFormula("planilha", "H27", "E27*E19")
 
 	if err := f.SaveAs(path + partNumber + ".xlsx"); err != nil {
 		fmt.Println(err)
@@ -275,7 +323,7 @@ func main() {
 	arqReferencia := identificarArquivoReferencia()
 	fmt.Println(arqReferencia)
 
-	carregarItems(arqReduzido)
+	carregarReduzido(arqReduzido)
 	carregarReferencia(arqReferencia)
 
 	fmt.Println("LISTAGEM DE ITENS:")
