@@ -20,10 +20,11 @@ type Requisicao struct {
 }
 
 var statusConsiderar = map[string]bool{
-	"Validada":             true,
-	"Aguardando validação": true,
-	"Análise do Pedido":    true,
-	"Em Cotação":           true,
+	"Validada":                 true,
+	"Aguardando validação":     true,
+	"Análise do Pedido":        true,
+	"Selecionada para cotação": true,
+	"Em Cotação":               true,
 }
 
 var statusDesconsiderar = map[string]bool{
@@ -93,6 +94,12 @@ func extrairDadosLinha(linha string) Requisicao {
 	req.unidade = strings.TrimSpace(col[31])
 	req.qtd, _ = strconv.ParseFloat(
 		strings.ReplaceAll(strings.TrimSpace(col[30]), "\"", ""), 64)
+
+	cff := strings.TrimSpace(col[6])
+	if cff != "002FK" {
+		fmt.Println(req.partNumber, " : ", req.numero, " : ", cff)
+	}
+
 	return req
 }
 
