@@ -1,7 +1,12 @@
 DESCRITIVO
-A partir do arquivo de um requisição (PLJ0461P) extraído para o período de interesse, são utilizados 2 programas:
-a) "reduzir": para cada DCN são listadas as correspondentes requisições e a soma dos itens requisitados
-b) "comparar": são comparados 2 arquivos "reduzidos" para verificar alterações entre eles
+A partir do arquivo de um requisição (PLJ0461P) extraído para o período de interesse, são utilizados 4 programas:
+a) "reduzir": é gerada uma planilha de sufixo "_reduzido" contemplando as requisições emitidas para cada DCN, com informações de quantidade e unidade
+b) "comparar": são comparados 2 arquivos "_reduzidos", emitidos em datas diferentes, para verificar acréscimos e descréscimos nas quantidades dos materiais requisitados
+c) "reajustar": a partir de um arquivo de histórico de requisições (materiais adquiridos ou que entraram em mapa) e de um arquivo com os índices mensais de IGPM, é gerado um arquivo de "referencia".
+Para gerar este arquivo é necessário que esteja disponível o arquivo IGPM.csv com o histórico mensal deste índice até o mês passado ao atual.
+Assim, é gerado o arquivo "referencia" pós fixada com a data do mês passado
+Este arquivo contempla o valor do IGPM acumulado para cada material e correspondente requisição.
+d) "planilhar": 
 
 A partir do arquivo de um requisição (PLJ0461P) extraído por todo o período disponível para os DCN de interesse, é utilizado o programa:
 a) "referencia": para cada DCN são listadas as requisições atendidas de forma a resgatar o valor unitário de aquisição, seu quantitativo e data de inclusão da requisição

@@ -16,7 +16,6 @@ import (
 )
 
 type Item struct {
-	//qtd          int64
 	nomenclatura string
 	requisicoes  []Requisicao
 	referencia   map[string]Referencia // Nº requisição --> Referencia
@@ -80,8 +79,35 @@ func identificarArquivoReferencia() string { // nome do arquivo de referência m
 	return "./historico/" + "referencia" + dtMax + ".csv"
 }
 
+// verifica se existe item já planilhado
+func existeItem(planilhados []string, partNumber string) bool {
+	for i := 0; i < len(planilhados); i++ {
+		if planilhados[i] == partNumber {
+			return true
+		}
+	}
+	return false
+}
+
+// retorna DCN cujas planilhas já foram geradas
+func obterPlanilhados() []string {
+	var planilhados []string
+
+	files, _ := ioutil.ReadDir("./estimativa")
+	for _, f := range files {
+		arqNome := f.Name()
+		if arqNome != "modelo.xlsx" {
+			runes := []rune(arqNome)
+			planilhados = append(planilhados, string(runes[0:len(runes)-5]))
+		}
+	}
+	return planilhados
+}
+
 // carrega o mapa items com os dados do arquivo reduzido
 func carregarReduzido(arqReduzido string) {
+	planilhados := obterPlanilhados()
+
 	csvArq, err := os.Open(arqReduzido)
 	if err != nil {
 		fmt.Println("não é possível abrir o arquivo", err)
@@ -99,6 +125,11 @@ func carregarReduzido(arqReduzido string) {
 			break
 		}
 
+		partNumber := r[0]
+		if existeItem(planilhados, partNumber) {
+			continue
+		}
+
 		aux := (len(r) - 2) / 3
 		reqArray := make([]Requisicao, 0, aux)
 		for i := 0; i < aux; i++ {
@@ -108,12 +139,9 @@ func carregarReduzido(arqReduzido string) {
 				unidade: r[2+3*i+2],
 			})
 		}
-
-		//aux, _ := strconv.ParseInt(r[2], 10, 64)
-		items[r[0]] = &Item{
+		items[partNumber] = &Item{
 			nomenclatura: r[1],
 			requisicoes:  reqArray,
-			//qtd:          aux,
 		}
 	}
 }
@@ -227,7 +255,8 @@ func escolherReferencia(partNumber string) string {
 
 	reqIndex := make(map[int64]string) // index --> nº requisição
 	for i, ref := range requisicoes {
-		fmt.Println(i, ref.data, ref.requisicao,
+		fmt.Println(lpad(strconv.FormatInt(int64(i), 10), " ", 3),
+			ref.data, ref.requisicao,
 			lpad(strconv.FormatInt(ref.qtd, 10), " ", 6), ref.unidade,
 			lpad(humanize.CommafWithDigits(ref.valor*ref.correcao, 2), " ", 12))
 		reqIndex[int64(i)] = ref.requisicao
@@ -255,7 +284,6 @@ gera planilha do partNumber considerando
 as requisições de referencia escolhidas
 */
 func gerarPlanilha(partNumber, requisicaoRef string) {
-	fmt.Println("PLANILHA:", partNumber, requisicaoRef)
 	path := "./estimativa/"
 
 	f, err := excelize.OpenFile(path + "modelo.xlsx")
@@ -263,7 +291,7 @@ func gerarPlanilha(partNumber, requisicaoRef string) {
 		fmt.Println(err)
 		return
 	}
-	cell, err := f.GetCellValue("planilha", "A1")
+	_, err = f.GetCellValue("planilha", "A1")
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -311,7 +339,7 @@ func gerarPlanilha(partNumber, requisicaoRef string) {
 		fmt.Println(err)
 	}
 
-	fmt.Println(cell)
+	//fmt.Println(cell)
 
 }
 
@@ -326,7 +354,9 @@ func main() {
 	carregarReduzido(arqReduzido)
 	carregarReferencia(arqReferencia)
 
-	fmt.Println("LISTAGEM DE ITENS:")
+	fmt.Println()
+	fmt.Println("LISTAGEM DE ITENS:\n")
+
 	itensEscolhidos := escolherItems()
 	for _, partNumber := range itensEscolhidos {
 		requisicaoRef := escolherReferencia(partNumber)
