@@ -147,7 +147,7 @@ func carregarReduzido(arqReduzido string) {
 }
 
 // carrega o mapa item/RequiçõesRef com os dados do arquivo referencia
-func carregarReferencia(arqReferencia string) {
+func carregarReferencia(arqReferencia string) {	
 	csvArq, err := os.Open(arqReferencia)
 	if err != nil {
 		fmt.Println("não é possível abrir o arquivo", err)
