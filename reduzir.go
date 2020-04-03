@@ -20,19 +20,22 @@ type Requisicao struct {
 }
 
 var statusConsiderar = map[string]bool{
-	"Validada":                 true,
 	"Aguardando validação":     true,
+	"Validada":                 true,
 	"Análise do Pedido":        true,
 	"Selecionada para cotação": true,
+	"Recotada":                 true,
 	"Em Cotação":               true,
 }
 
+/*
 var statusDesconsiderar = map[string]bool{
 	"Anulada":                 true,
 	"Cancelada":               true,
 	"Recebida no Solicitante": true,
 	"Recebida na Comissão":    true,
 }
+*/
 
 var reqs map[string][]Requisicao // partNumber --> Requisicao
 
@@ -77,9 +80,12 @@ func extrairDadosLinha(linha string) Requisicao {
 
 	req.status = strings.TrimSpace(col[17])
 	if !statusConsiderar[req.status] {
-		if !statusDesconsiderar[req.status] {
-			fmt.Println("requisição não processada:", req.numero, req.status)
-		}
+		fmt.Println("Desconsiderada: ", req.numero, req.status)
+		/*
+			if !statusDesconsiderar[req.status] {
+				fmt.Println("requisição não processada:", req.numero, req.status)
+			}
+		*/
 		req.numero = ""
 		return req
 	}
@@ -150,11 +156,13 @@ func getPlanilhasNome() []string {
 }
 
 func main() {
-	fmt.Print("DESCONSIDERADAS ")
-	for k := range statusDesconsiderar {
-		fmt.Print(" - " + k)
-	}
-	fmt.Println()
+	/*
+		fmt.Print("DESCONSIDERADAS ")
+		for k := range statusDesconsiderar {
+			fmt.Print(" - " + k)
+		}
+		fmt.Println()
+	*/
 
 	planilhas := getPlanilhasNome()
 
