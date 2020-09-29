@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -38,6 +39,8 @@ var statusDesconsiderar = map[string]bool{
 */
 
 var reqs map[string][]Requisicao // partNumber --> Requisicao
+
+var requisicoesDesconsideradas [][]string
 
 // os planilhas são processadas e armazenadas
 // com o mesmo nome acrescido de "_reduzido"
@@ -78,14 +81,10 @@ func extrairDadosLinha(linha string) Requisicao {
 		return req
 	}
 
+	req.partNumber = strings.TrimSpace(col[4])
 	req.status = strings.TrimSpace(col[17])
 	if !statusConsiderar[req.status] {
-		fmt.Println("Desconsiderada: ", req.numero, req.status)
-		/*
-			if !statusDesconsiderar[req.status] {
-				fmt.Println("requisição não processada:", req.numero, req.status)
-			}
-		*/
+		requisicoesDesconsideradas = append(requisicoesDesconsideradas, []string{req.status, req.partNumber, req.numero})
 		req.numero = ""
 		return req
 	}
@@ -103,7 +102,7 @@ func extrairDadosLinha(linha string) Requisicao {
 
 	cff := strings.TrimSpace(col[6])
 	if cff != "002FK" {
-		fmt.Println(req.partNumber, " : ", req.numero, " : ", cff)
+		fmt.Println("CFF diferente de 002FK: ", cff, " : ", req.numero, " : ", req.partNumber)
 	}
 
 	return req
@@ -155,21 +154,35 @@ func getPlanilhasNome() []string {
 	return aux
 }
 
-func main() {
-	/*
-		fmt.Print("DESCONSIDERADAS ")
-		for k := range statusDesconsiderar {
-			fmt.Print(" - " + k)
-		}
-		fmt.Println()
-	*/
+func gravarRequisicoesDesconsideradas(arq string) {
+	fmt.Println("DESCONSIDERADAS:")
+	sort.Slice(requisicoesDesconsideradas, func(i, j int) bool {
+		return requisicoesDesconsideradas[i][0] < requisicoesDesconsideradas[j][0]
+	})
 
+	for _, req := range requisicoesDesconsideradas {
+		fmt.Println(req)
+	}
+
+	csvfile, _ := os.Create("planilhas/" + arq + "_desconsideradas.csv")
+	w := csv.NewWriter(csvfile)
+	w.Comma = ';'
+
+	for _, requisicao := range requisicoesDesconsideradas {
+		w.Write(requisicao)
+	}
+	w.Flush()
+	csvfile.Close()
+}
+
+func main() {
 	planilhas := getPlanilhasNome()
 
 	for _, arqNome := range planilhas {
 		fmt.Println(arqNome)
 		lerPlanilha(arqNome)
 		gravarPlanilha(arqNome)
+		gravarRequisicoesDesconsideradas(arqNome)
 	}
 
 }
