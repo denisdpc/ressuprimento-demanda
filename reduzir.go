@@ -1,4 +1,4 @@
-package main
+﻿package main
 
 import (
 	"bufio"
@@ -27,6 +27,8 @@ var statusConsiderar = map[string]bool{
 	"Selecionada para cotação": true,
 	"Recotada":                 true,
 	"Em Cotação":               true,
+	"Suspensa temporariamente": true,
+	"Item Deserto":             true,
 }
 
 /*
