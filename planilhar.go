@@ -147,7 +147,7 @@ func carregarReduzido(arqReduzido string) {
 }
 
 // carrega o mapa item/RequiçõesRef com os dados do arquivo referencia
-func carregarReferencia(arqReferencia string) {	
+func carregarReferencia(arqReferencia string) {
 	csvArq, err := os.Open(arqReferencia)
 	if err != nil {
 		fmt.Println("não é possível abrir o arquivo", err)
@@ -330,9 +330,10 @@ func gerarPlanilha(partNumber, requisicaoRef string) {
 	f.SetCellFormula("planilha", "E19", "SUM(E16:E18)")
 	f.SetCellFormula("planilha", "G23", "E19/G11")
 	f.SetCellFormula("planilha", "G24", "IF(G23>=1,0.1,IF(G23>0.67,0.4,IF(G23>0.33,0.6,0.8)))")
-	f.SetCellFormula("planilha", "A27", "G24*I11*J19*J16*G11")
-	f.SetCellFormula("planilha", "C27", "IF(G11=0,0,(1-G24)*I11*E19*J16*J19)")
-	f.SetCellFormula("planilha", "E27", "(A27+C27)/E19")
+
+	f.SetCellFormula("planilha", "A27", "(0.85*EXP(-E19*J24/I24)+0.1)*I11*J16*J19")
+	f.SetCellFormula("planilha", "C27", "(0.9-0.85*EXP(-E19*J24/I24))*I11*J16*J19")
+	f.SetCellFormula("planilha", "E27", "A27+C27")
 	f.SetCellFormula("planilha", "H27", "E27*E19")
 
 	if err := f.SaveAs(path + partNumber + ".xlsx"); err != nil {
