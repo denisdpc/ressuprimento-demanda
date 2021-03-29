@@ -197,7 +197,8 @@ func lerIGPM() map[string]float64 {
 		indice, _ := strconv.ParseFloat(record[1], 64)
 		igpm[record[0]] = indice
 	}
-	mesPassado := time.Now().AddDate(0, -1, 0).Format("2006-01")
+
+	mesPassado := time.Now().AddDate(0, -1, 0).Format("2006-01")		
 
 	_, igpmRegistrado := igpm[mesPassado]
 	if !igpmRegistrado {

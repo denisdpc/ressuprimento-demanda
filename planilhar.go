@@ -167,6 +167,8 @@ func carregarReferencia(arqReferencia string) {
 		if item, temItem := items[partNumber]; temItem {
 			auxQtd, _ := strconv.ParseInt(r[4], 10, 64)
 			auxValor, _ := strconv.ParseFloat(strings.Replace(r[6], ",", ".", 1), 64)
+			auxValor *= float64(auxQtd)
+			
 			auxCorrecao, _ := strconv.ParseFloat(strings.Replace(r[7], ",", ".", 1), 64)
 			req := r[1]
 			ref := Referencia{
@@ -327,6 +329,7 @@ func gerarPlanilha(partNumber, requisicaoRef string) {
 		f.SetCellValue("planilha", "F19", requisicoes[0].unidade)
 	}
 
+	/*
 	f.SetCellFormula("planilha", "E19", "SUM(E16:E18)")
 	f.SetCellFormula("planilha", "G23", "E19/G11")
 	f.SetCellFormula("planilha", "G24", "IF(G23>=1,0.1,IF(G23>0.67,0.4,IF(G23>0.33,0.6,0.8)))")
@@ -335,6 +338,7 @@ func gerarPlanilha(partNumber, requisicaoRef string) {
 	f.SetCellFormula("planilha", "C27", "(0.9-0.85*EXP(-E19*J24/I24))*I11*J16*J19")
 	f.SetCellFormula("planilha", "E27", "A27+C27")
 	f.SetCellFormula("planilha", "H27", "E27*E19")
+	*/
 
 	if err := f.SaveAs(path + partNumber + ".xlsx"); err != nil {
 		fmt.Println(err)
